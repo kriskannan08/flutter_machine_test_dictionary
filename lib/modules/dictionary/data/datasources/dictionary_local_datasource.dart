@@ -52,8 +52,6 @@ class DictionaryLocalDataSourceImpl implements DictionaryLocalDataSource {
   @override
   Future<void> saveWordDetails(String word, WordDetailsModel details) async {
     final db = await _db;
-    final normalizedWord = word.trim().toLowerCase();
-    
     await db.insert(
       'dictionary',
       details.toDatabaseMap(),
