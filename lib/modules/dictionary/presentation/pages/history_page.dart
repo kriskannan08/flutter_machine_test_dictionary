@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:machine_test_dictionary/app/theme/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:machine_test_dictionary/app/router/navigation_helper.dart';
 import 'package:machine_test_dictionary/modules/dictionary/presentation/providers/dictionary_providers.dart';
 import 'package:machine_test_dictionary/modules/dictionary/presentation/widgets/organisms/word_details_sheet.dart';
 
@@ -32,20 +34,20 @@ class HistoryPage extends ConsumerWidget {
     final history = ref.watch(searchHistoryProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Search History',
-          style: TextStyle(
-            color: Color(0xFF1E293B),
-            fontWeight: FontWeight.bold,
-          ),
+          style: context.appTheme.headingStyle,
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E293B)),
-          onPressed: () => Navigator.of(context).pop(),
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          onPressed: () => context.popRoute(),
         ),
       ),
       body: history.isEmpty
@@ -67,15 +69,14 @@ class HistoryPage extends ConsumerWidget {
                 return ListTile(
                   title: Text(
                     word,
-                    style: const TextStyle(
-                      fontSize: 18,
+                    style: context.appTheme.bodyStyle.copyWith(
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF1E293B),
+                      fontSize: 18,
                     ),
                   ),
-                  trailing: const Icon(
+                  trailing: Icon(
                     Icons.chevron_right,
-                    color: Color(0xFF94A3B8),
+                    color: context.appTheme.captionStyle.color,
                   ),
                   onTap: () => _showWordDetails(context, word),
                 );

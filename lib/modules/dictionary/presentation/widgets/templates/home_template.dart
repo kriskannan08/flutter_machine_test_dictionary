@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:machine_test_dictionary/app/theme/app_theme.dart';
 import 'package:machine_test_dictionary/modules/dictionary/presentation/widgets/atoms/section_title.dart';
 import 'package:machine_test_dictionary/modules/dictionary/presentation/widgets/molecules/dictionary_search_field.dart';
 import 'package:machine_test_dictionary/modules/dictionary/presentation/widgets/organisms/search_history_list.dart';
@@ -32,6 +33,8 @@ class HomeTemplate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appTheme = context.appTheme;
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -39,19 +42,18 @@ class HomeTemplate extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'WORDWISE',
-              style: TextStyle(
+              style: appTheme.headingStyle.copyWith(
                 fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF4F46E5),
+                color: Theme.of(context).colorScheme.primary,
                 letterSpacing: 2,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Discover meanings instantly',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+              style: appTheme.bodyStyle,
             ),
             const SizedBox(height: 32),
             DictionarySearchField(
@@ -61,7 +63,7 @@ class HomeTemplate extends StatelessWidget {
               onClear: onSearchClear,
             ),
             const SizedBox(height: 36),
-            const SectionTitle(title: 'Word of the Day'),
+            SectionTitle(title: 'Word of the Day'),
             const SizedBox(height: 18),
             WordOfDayCard(
               word: wordOfTheDay,

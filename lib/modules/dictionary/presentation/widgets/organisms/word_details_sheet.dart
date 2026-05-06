@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:machine_test_dictionary/app/theme/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:machine_test_dictionary/modules/dictionary/domain/entities/word_details.dart';
 import 'package:machine_test_dictionary/modules/dictionary/presentation/providers/dictionary_providers.dart';
@@ -19,9 +20,9 @@ class WordDetailsSheet extends ConsumerWidget {
 
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: wordDetails.when(
         data: (details) => _WordDetailsContent(
@@ -63,17 +64,16 @@ class _WordDetailsContent extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             details.word,
-            style: const TextStyle(
+            style: context.appTheme.headingStyle.copyWith(
               fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF4F46E5),
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
           if (details.phonetic.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
               details.phonetic,
-              style: const TextStyle(fontSize: 18, color: Colors.grey),
+              style: context.appTheme.captionStyle.copyWith(fontSize: 18),
             ),
           ],
           const SizedBox(height: 24),
@@ -93,9 +93,9 @@ class _WordDetailsContent extends StatelessWidget {
           ],
           if (details.synonyms.isNotEmpty) ...[
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Synonyms',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: context.appTheme.headingStyle.copyWith(fontSize: 20),
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -137,13 +137,13 @@ class _SheetMessage extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: context.appTheme.headingStyle.copyWith(fontSize: 20),
             ),
             const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.grey),
+              style: context.appTheme.bodyStyle,
             ),
           ],
         ),
@@ -188,16 +188,14 @@ class _DetailSection extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: context.appTheme.headingStyle.copyWith(fontSize: 20),
         ),
         const SizedBox(height: 12),
         Text(
           body,
-          style: TextStyle(
-            fontSize: 16,
+          style: context.appTheme.bodyStyle.copyWith(
             fontStyle: isItalic ? FontStyle.italic : FontStyle.normal,
             height: 1.6,
-            color: Colors.black87,
           ),
         ),
       ],

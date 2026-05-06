@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:machine_test_dictionary/app/theme/app_theme.dart';
 
 class WordList extends StatefulWidget {
   const WordList({
@@ -77,15 +78,14 @@ class _WordListState extends State<WordList> {
         return ListTile(
           title: Text(
             word,
-            style: const TextStyle(
+            style: context.appTheme.bodyStyle.copyWith(
               fontSize: 18,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF1E293B),
             ),
           ),
-          trailing: const Icon(
+          trailing: Icon(
             Icons.chevron_right,
-            color: Color(0xFF94A3B8),
+            color: context.appTheme.captionStyle.color,
           ),
           onTap: () => widget.onWordTap(word),
         );

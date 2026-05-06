@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -23,7 +24,16 @@ class DatabaseHelper {
     final db = await openDictionaryDatabase();
     
     // Ensure table and index exist
-    await db.execute('CREATE TABLE IF NOT EXISTS dictionary (word TEXT PRIMARY KEY, definition TEXT, example TEXT, pronunciation TEXT)');
+    // Ensure table and index exist with all required columns
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS dictionary (
+        word TEXT PRIMARY KEY, 
+        definition TEXT, 
+        example TEXT, 
+        phonetic TEXT,
+        synonyms TEXT
+      )
+    ''');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_word ON dictionary(word)');
 
     // Check if we need to seed
@@ -67,6 +77,29 @@ class DatabaseHelper {
         print('Seeding ${words.length} words...');
         
         await db.transaction((txn) async {
+          // 1. First, seed with enriched data from local JSON
+          try {
+            final String seedJson = await rootBundle.loadString('assets/database/dictionary_seed.json');
+            final List<dynamic> seedData = jsonDecode(seedJson);
+            for (final item in seedData) {
+              await txn.insert(
+                'dictionary',
+                {
+                  'word': item['word'].toString().toLowerCase(),
+                  'definition': item['definition'],
+                  'example': item['example'],
+                  'phonetic': item['phonetic'],
+                  'synonyms': jsonEncode(item['synonyms'] ?? []),
+                },
+                conflictAlgorithm: ConflictAlgorithm.replace,
+              );
+            }
+            print('Seeded ${seedData.length} enriched words from local JSON.');
+          } catch (e) {
+            print('Local seeding skipped or failed: $e');
+          }
+
+          // 2. Then, populate the remaining words from the 10k list
           // Cleanup existing invalid words first
           await txn.rawDelete(
             "DELETE FROM dictionary WHERE length(word) < 3 AND word NOT IN ('a', 'i', 'an', 'to', 'at', 'by', 'do', 'go', 'if', 'in', 'is', 'it', 'me', 'my', 'no', 'of', 'on', 'or', 'so', 'up', 'us', 'we', 'am', 'as', 'be', 'he')"

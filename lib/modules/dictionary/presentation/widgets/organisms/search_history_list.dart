@@ -29,14 +29,14 @@ class SearchHistoryList extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const SectionTitle(title: 'History'),
+            SectionTitle(title: 'History'),
             if (words.isNotEmpty)
               TextButton(
                 onPressed: onViewAll,
-                child: const Text(
+                child: Text(
                   'View All',
                   style: TextStyle(
-                    color: Color(0xFF4F46E5),
+                    color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

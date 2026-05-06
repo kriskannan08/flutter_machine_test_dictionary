@@ -56,13 +56,7 @@ class DictionaryLocalDataSourceImpl implements DictionaryLocalDataSource {
     
     await db.insert(
       'dictionary',
-      {
-        'word': normalizedWord,
-        'phonetic': details.phonetic,
-        'definition': details.definition,
-        'example': details.example,
-        'synonyms': details.synonyms.join(', '),
-      },
+      details.toDatabaseMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }

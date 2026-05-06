@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:machine_test_dictionary/app/theme/app_theme.dart';
 import 'package:machine_test_dictionary/shared/presentation/atoms/floating_letter.dart';
 import 'package:machine_test_dictionary/shared/presentation/organisms/splash_brand_panel.dart';
 
@@ -27,12 +28,8 @@ class SplashTemplate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
-        ),
+      decoration: BoxDecoration(
+        gradient: context.appTheme.primaryGradient,
       ),
       child: SafeArea(
         child: Stack(

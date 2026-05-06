@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:machine_test_dictionary/app/theme/app_theme.dart';
 
 class DictionarySearchField extends StatelessWidget {
   const DictionarySearchField({
@@ -18,22 +19,16 @@ class DictionarySearchField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: context.appTheme.cardShadow,
       ),
       child: TextField(
         controller: controller,
         onSubmitted: onSubmitted,
         decoration: InputDecoration(
           hintText: 'Search meanings, synonyms, definitions...',
-          prefixIcon: const Icon(Icons.search, color: Color(0xFF4F46E5)),
+          prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
           suffixIcon: controller.text.isNotEmpty
               ? IconButton(icon: const Icon(Icons.clear), onPressed: onClear)
               : null,

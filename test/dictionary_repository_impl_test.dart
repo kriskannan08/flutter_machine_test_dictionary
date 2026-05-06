@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:machine_test_dictionary/modules/dictionary/data/datasources/dictionary_remote_datasource.dart';
 import 'package:machine_test_dictionary/modules/dictionary/data/datasources/search_history_local_datasource.dart';
+import 'package:machine_test_dictionary/modules/dictionary/data/datasources/dictionary_local_datasource.dart';
 import 'package:machine_test_dictionary/modules/dictionary/data/models/word_details_model.dart';
 import 'package:machine_test_dictionary/modules/dictionary/data/repositories/dictionary_repository_impl.dart';
 
@@ -19,9 +20,11 @@ void main() {
           ),
         );
         final remoteDataSource = _FakeDictionaryRemoteDataSource();
+        final offlineDataSource = _FakeDictionaryLocalDataSource();
         final repository = DictionaryRepositoryImpl(
           remoteDataSource,
           localDataSource,
+          offlineDataSource,
         );
 
         final details = await repository.getWordDetails('Serendipity');
@@ -44,9 +47,11 @@ void main() {
             synonyms: [],
           ),
         );
+        final offlineDataSource = _FakeDictionaryLocalDataSource();
         final repository = DictionaryRepositoryImpl(
           remoteDataSource,
           localDataSource,
+          offlineDataSource,
         );
 
         await repository.getWordDetails('History Word');
@@ -102,4 +107,19 @@ class _FakeSearchHistoryLocalDataSource
   Future<void> saveWordDetails(String word, WordDetailsModel details) async {
     savedWord = word;
   }
+}
+
+class _FakeDictionaryLocalDataSource implements DictionaryLocalDataSource {
+  @override
+  Future<List<String>> getAllWords({int limit = 50, int offset = 0}) async {
+    return const [];
+  }
+
+  @override
+  Future<WordDetailsModel?> getWordDetails(String word) async {
+    return null;
+  }
+
+  @override
+  Future<void> saveWordDetails(String word, WordDetailsModel details) async {}
 }

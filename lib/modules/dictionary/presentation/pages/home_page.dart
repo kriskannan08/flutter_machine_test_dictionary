@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:machine_test_dictionary/app/router/app_router.dart';
+import 'package:machine_test_dictionary/app/router/navigation_helper.dart';
 import 'package:machine_test_dictionary/modules/dictionary/presentation/providers/dictionary_providers.dart';
 import 'package:machine_test_dictionary/modules/dictionary/presentation/widgets/organisms/word_details_sheet.dart';
 import 'package:machine_test_dictionary/modules/dictionary/presentation/widgets/templates/home_template.dart';
@@ -71,7 +72,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     final wordsListState = ref.watch(wordsListProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: IndexedStack(
         index: _currentIndex,
         children: [
@@ -88,7 +89,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             },
             searchHistory: searchHistory,
             onHistoryWordTap: _handleHistoryWordTap,
-            onViewAll: () => context.push(AppRoute.history.path),
+            onViewAll: () => context.pushTo(AppRoute.history),
           ),
           WordsTemplate(
             words: wordsListState.words,
@@ -105,7 +106,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
-        selectedItemColor: const Color(0xFF4F46E5),
+        selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(
