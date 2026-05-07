@@ -12,9 +12,7 @@ class AppTheme {
         primary: const Color(0xFF4F46E5),
         surface: const Color(0xFFF8FAFC),
       ),
-      extensions: [
-        AppThemeExtension.light,
-      ],
+      extensions: [AppThemeExtension.light],
     );
   }
 
@@ -28,9 +26,7 @@ class AppTheme {
         brightness: Brightness.dark,
         surface: const Color(0xFF0F172A),
       ),
-      extensions: [
-        AppThemeExtension.dark,
-      ],
+      extensions: [AppThemeExtension.dark],
     );
   }
 }
@@ -75,7 +71,11 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
   ) {
     if (other is! AppThemeExtension) return this;
     return AppThemeExtension(
-      primaryGradient: LinearGradient.lerp(primaryGradient, other.primaryGradient, t)!,
+      primaryGradient: LinearGradient.lerp(
+        primaryGradient,
+        other.primaryGradient,
+        t,
+      )!,
       cardShadow: BoxShadow.lerpList(cardShadow, other.cardShadow, t)!,
       headingStyle: TextStyle.lerp(headingStyle, other.headingStyle, t)!,
       bodyStyle: TextStyle.lerp(bodyStyle, other.bodyStyle, t)!,
@@ -91,7 +91,7 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     ),
     cardShadow: [
       BoxShadow(
-        color: Colors.black.withOpacity(0.05),
+        color: Colors.black.withValues(alpha: 0.05),
         blurRadius: 10,
         offset: const Offset(0, 4),
       ),
@@ -101,14 +101,8 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       fontWeight: FontWeight.bold,
       color: Color(0xFF1E293B),
     ),
-    bodyStyle: const TextStyle(
-      fontSize: 16,
-      color: Color(0xFF475569),
-    ),
-    captionStyle: const TextStyle(
-      fontSize: 14,
-      color: Color(0xFF94A3B8),
-    ),
+    bodyStyle: const TextStyle(fontSize: 16, color: Color(0xFF475569)),
+    captionStyle: const TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
   );
 
   static final dark = AppThemeExtension(
@@ -119,7 +113,7 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     ),
     cardShadow: [
       BoxShadow(
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withValues(alpha: 0.3),
         blurRadius: 15,
         offset: const Offset(0, 6),
       ),
@@ -129,17 +123,12 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       fontWeight: FontWeight.bold,
       color: Color(0xFFF8FAFC),
     ),
-    bodyStyle: const TextStyle(
-      fontSize: 16,
-      color: Color(0xFFCBD5E1),
-    ),
-    captionStyle: const TextStyle(
-      fontSize: 14,
-      color: Color(0xFF64748B),
-    ),
+    bodyStyle: const TextStyle(fontSize: 16, color: Color(0xFFCBD5E1)),
+    captionStyle: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
   );
 }
 
 extension AppThemeX on BuildContext {
-  AppThemeExtension get appTheme => Theme.of(this).extension<AppThemeExtension>()!;
+  AppThemeExtension get appTheme =>
+      Theme.of(this).extension<AppThemeExtension>()!;
 }

@@ -44,7 +44,7 @@ class WordsTemplate extends StatelessWidget {
               style: appTheme.bodyStyle,
             ),
             const SizedBox(height: 32),
-            SectionTitle(title: 'All Words'),
+            const SectionTitle(title: 'All Words'),
             const SizedBox(height: 12),
             Expanded(
               child: WordList(

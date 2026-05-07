@@ -63,7 +63,7 @@ class HomeTemplate extends StatelessWidget {
               onClear: onSearchClear,
             ),
             const SizedBox(height: 36),
-            SectionTitle(title: 'Word of the Day'),
+            const SectionTitle(title: 'Word of the Day'),
             const SizedBox(height: 18),
             WordOfDayCard(
               word: wordOfTheDay,

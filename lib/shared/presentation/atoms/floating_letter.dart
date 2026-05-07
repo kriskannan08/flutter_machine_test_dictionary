@@ -22,7 +22,7 @@ class FloatingLetter extends StatelessWidget {
         child: Text(
           letter,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.12),
+            color: Colors.white.withValues(alpha: 0.12),
             fontSize: 52,
             fontWeight: FontWeight.bold,
           ),

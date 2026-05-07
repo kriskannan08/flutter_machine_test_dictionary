@@ -36,10 +36,7 @@ class HistoryPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: Text(
-          'Search History',
-          style: context.appTheme.headingStyle,
-        ),
+        title: Text('Search History', style: context.appTheme.headingStyle),
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
@@ -60,10 +57,8 @@ class HistoryPage extends ConsumerWidget {
           : ListView.separated(
               padding: const EdgeInsets.symmetric(vertical: 16),
               itemCount: history.length,
-              separatorBuilder: (context, index) => Divider(
-                color: Colors.grey.withOpacity(0.1),
-                height: 1,
-              ),
+              separatorBuilder: (context, index) =>
+                  Divider(color: Colors.grey.withValues(alpha: 0.1), height: 1),
               itemBuilder: (context, index) {
                 final word = history[index];
                 return ListTile(

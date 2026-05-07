@@ -10,6 +10,7 @@ abstract class DictionaryLocalDataSource {
 
 class DictionaryLocalDataSourceImpl implements DictionaryLocalDataSource {
   Database? _database;
+  final Map<String, WordDetailsModel> _cache = {};
 
   Future<Database> get _db async {
     if (_database != null) return _database!;
@@ -19,9 +20,14 @@ class DictionaryLocalDataSourceImpl implements DictionaryLocalDataSource {
 
   @override
   Future<WordDetailsModel?> getWordDetails(String word) async {
-    final db = await _db;
     final normalizedWord = word.trim().toLowerCase();
 
+    // Check cache first
+    if (_cache.containsKey(normalizedWord)) {
+      return _cache[normalizedWord];
+    }
+
+    final db = await _db;
     final List<Map<String, dynamic>> maps = await db.query(
       'dictionary',
       where: 'word = ?',
@@ -30,7 +36,9 @@ class DictionaryLocalDataSourceImpl implements DictionaryLocalDataSource {
     );
 
     if (maps.isNotEmpty) {
-      return WordDetailsModel.fromDatabase(maps.first);
+      final model = WordDetailsModel.fromDatabase(maps.first);
+      _cache[normalizedWord] = model;
+      return model;
     }
     return null;
   }
@@ -51,6 +59,9 @@ class DictionaryLocalDataSourceImpl implements DictionaryLocalDataSource {
 
   @override
   Future<void> saveWordDetails(String word, WordDetailsModel details) async {
+    final normalizedWord = word.trim().toLowerCase();
+    _cache[normalizedWord] = details;
+
     final db = await _db;
     await db.insert(
       'dictionary',

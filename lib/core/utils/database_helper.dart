@@ -1,16 +1,15 @@
+import 'dart:async';
 import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:machine_test_dictionary/core/constants/app_constants.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
-import 'package:universal_io/io.dart';
 
 class DatabaseHelper {
-  static const String _databaseName = 'offline_dictionary.db';
-  static const String _wordListUrl = 'https://raw.githubusercontent.com/first20hours/google-10000-english/master/google-10000-english.txt';
-
   static Future<void> ensureDatabaseExists() async {
     if (kIsWeb) {
       databaseFactory = createDatabaseFactoryFfiWeb(
@@ -22,8 +21,7 @@ class DatabaseHelper {
     }
 
     final db = await openDictionaryDatabase();
-    
-    // Ensure table and index exist
+
     // Ensure table and index exist with all required columns
     await db.execute('''
       CREATE TABLE IF NOT EXISTS dictionary (
@@ -34,93 +32,88 @@ class DatabaseHelper {
         synonyms TEXT
       )
     ''');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_word ON dictionary(word)');
 
     // Check if we need to seed
-    final count = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM dictionary'));
+    final count = Sqflite.firstIntValue(
+      await db.rawQuery('SELECT COUNT(*) FROM dictionary'),
+    );
     if (count != null && count < 1000) {
       // Start seeding in background to not block app launch
-      _seedDatabaseInBackground(db);
+      unawaited(_seedDatabaseInBackground(db));
     } else {
       await db.close();
     }
   }
 
+  static final RegExp _nonAlphabeticPattern = RegExp(r'[^a-z]');
+
   static Future<void> _seedDatabaseInBackground(Database db) async {
     try {
-      print('Fetching large word list for seeding...');
+      debugPrint('Fetching large word list for seeding...');
       final dio = Dio();
-      final response = await dio.get(_wordListUrl);
-      
+      final response = await dio.get(AppConstants.wordListUrl);
+
       if (response.statusCode == 200) {
         final words = (response.data as String)
             .split('\n')
             .map((w) => w.trim().toLowerCase())
             .where((w) {
-              // Filter out invalid words:
-              // - Too short (less than 3 chars, unless it's a common short word)
-              // - Contains non-alphabetical characters
-              final commonShortWords = {
-                'a', 'i', 'an', 'to', 'at', 'by', 'do', 'go', 'if', 'in', 'is', 'it', 
-                'me', 'my', 'no', 'of', 'on', 'or', 'so', 'up', 'us', 'we', 'am', 'as', 'be', 'he'
-              };
-              if (w.length < 3 && !commonShortWords.contains(w)) return false;
-              if (RegExp(r'[^a-z]').hasMatch(w)) return false;
-              
-              // Remove nonsense like "aaa", "bbb", "abc"
-              if (w == 'aaa' || w == 'bbb' || w == 'ccc' || w == 'abc') return false;
-              
+              if (w.length < 3 && !AppConstants.commonShortWords.contains(w)) {
+                return false;
+              }
+              if (_nonAlphabeticPattern.hasMatch(w)) return false;
+              if (AppConstants.nonsenseWords.contains(w)) return false;
               return true;
             })
             .toList();
 
-        print('Seeding ${words.length} words...');
-        
+        debugPrint('Seeding ${words.length} words...');
+
         await db.transaction((txn) async {
+          final batch = txn.batch();
+
           // 1. First, seed with enriched data from local JSON
           try {
-            final String seedJson = await rootBundle.loadString('assets/database/dictionary_seed.json');
+            final String seedJson = await rootBundle.loadString(
+              AppConstants.seedJsonPath,
+            );
             final List<dynamic> seedData = jsonDecode(seedJson);
             for (final item in seedData) {
-              await txn.insert(
-                'dictionary',
-                {
-                  'word': item['word'].toString().toLowerCase(),
-                  'definition': item['definition'],
-                  'example': item['example'],
-                  'phonetic': item['phonetic'],
-                  'synonyms': jsonEncode(item['synonyms'] ?? []),
-                },
-                conflictAlgorithm: ConflictAlgorithm.replace,
-              );
+              batch.insert('dictionary', {
+                'word': item['word'].toString().toLowerCase(),
+                'definition': item['definition'],
+                'example': item['example'],
+                'phonetic': item['phonetic'],
+                'synonyms': jsonEncode(item['synonyms'] ?? []),
+              }, conflictAlgorithm: ConflictAlgorithm.replace);
             }
-            print('Seeded ${seedData.length} enriched words from local JSON.');
           } catch (e) {
-            print('Local seeding skipped or failed: $e');
+            debugPrint('Local seeding skipped or failed: $e');
           }
 
           // 2. Then, populate the remaining words from the 10k list
           // Cleanup existing invalid words first
           await txn.rawDelete(
-            "DELETE FROM dictionary WHERE length(word) < 3 AND word NOT IN ('a', 'i', 'an', 'to', 'at', 'by', 'do', 'go', 'if', 'in', 'is', 'it', 'me', 'my', 'no', 'of', 'on', 'or', 'so', 'up', 'us', 'we', 'am', 'as', 'be', 'he')"
+            "DELETE FROM dictionary WHERE length(word) < 3 AND word NOT IN (${AppConstants.commonShortWords.map((e) => "'$e'").join(',')})",
           );
-          await txn.rawDelete("DELETE FROM dictionary WHERE word IN ('aaa', 'bbb', 'ccc', 'abc')");
-          await txn.rawDelete("DELETE FROM dictionary WHERE word GLOB '*[^a-z]*'");
+          await txn.rawDelete(
+            "DELETE FROM dictionary WHERE word IN (${AppConstants.nonsenseWords.map((e) => "'$e'").join(',')})",
+          );
+          await txn.rawDelete(
+            "DELETE FROM dictionary WHERE word GLOB '*[^a-z]*'",
+          );
 
-          final batch = txn.batch();
           for (final word in words) {
-            batch.insert(
-              'dictionary',
-              {'word': word},
-              conflictAlgorithm: ConflictAlgorithm.ignore,
-            );
+            batch.insert('dictionary', {
+              'word': word,
+            }, conflictAlgorithm: ConflictAlgorithm.ignore);
           }
           await batch.commit(noResult: true);
         });
-        print('Database seeding completed.');
+        debugPrint('Database seeding completed.');
       }
     } catch (e) {
-      print('Error seeding database: $e');
+      debugPrint('Error seeding database: $e');
     } finally {
       await db.close();
     }
@@ -128,10 +121,10 @@ class DatabaseHelper {
 
   static Future<Database> openDictionaryDatabase() async {
     if (kIsWeb) {
-      return await openDatabase(_databaseName);
+      return await openDatabase(AppConstants.databaseName);
     }
     final databasesPath = await getDatabasesPath();
-    final path = join(databasesPath, _databaseName);
+    final path = join(databasesPath, AppConstants.databaseName);
     return await openDatabase(path, readOnly: false);
   }
 }

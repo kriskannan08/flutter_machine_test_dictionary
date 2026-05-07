@@ -1,4 +1,5 @@
 import 'package:path/path.dart' as path;
+import 'package:machine_test_dictionary/core/constants/app_constants.dart';
 import 'package:machine_test_dictionary/modules/dictionary/data/datasources/search_history_local_datasource.dart';
 import 'package:machine_test_dictionary/modules/dictionary/data/models/word_details_model.dart';
 import 'package:sqflite/sqflite.dart';
@@ -10,8 +11,6 @@ SearchHistoryLocalDataSource createPlatformSearchHistoryLocalDataSource() {
 class SearchHistorySqfliteLocalDataSource
     implements SearchHistoryLocalDataSource {
   SearchHistorySqfliteLocalDataSource() : _database = _openDatabase();
-
-  static const _databaseName = 'dictionary.db';
   static const _databaseVersion = 2;
   static const _tableName = 'search_history';
   static const _wordColumn = 'word';
@@ -20,6 +19,7 @@ class SearchHistorySqfliteLocalDataSource
   static const _exampleColumn = 'example';
   static const _synonymsColumn = 'synonyms';
   static const _searchedAtColumn = 'searched_at';
+  static const _searchedAtIndex = 'idx_search_history_searched_at';
 
   final Future<Database> _database;
 
@@ -40,31 +40,31 @@ class SearchHistorySqfliteLocalDataSource
 
   @override
   Future<void> saveSearchHistory(List<String> words) async {
+    if (words.isEmpty) {
+      return;
+    }
+
+    final word = words.first.trim().toLowerCase();
+    if (word.isEmpty) {
+      return;
+    }
+
     final database = await _database;
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final searchedAt = DateTime.now().millisecondsSinceEpoch;
 
-    await database.transaction((transaction) async {
-      for (var index = 0; index < words.length; index++) {
-        final word = words[index].trim().toLowerCase();
-        if (word.isEmpty) {
-          continue;
-        }
+    final rowsUpdated = await database.update(
+      _tableName,
+      {_searchedAtColumn: searchedAt},
+      where: '$_wordColumn = ?',
+      whereArgs: [word],
+    );
 
-        final rowsUpdated = await transaction.update(
-          _tableName,
-          {_searchedAtColumn: now - index},
-          where: '$_wordColumn = ?',
-          whereArgs: [word],
-        );
-
-        if (rowsUpdated == 0) {
-          await transaction.insert(_tableName, {
-            _wordColumn: word,
-            _searchedAtColumn: now - index,
-          });
-        }
-      }
-    });
+    if (rowsUpdated == 0) {
+      await database.insert(_tableName, {
+        _wordColumn: word,
+        _searchedAtColumn: searchedAt,
+      });
+    }
   }
 
   @override
@@ -108,13 +108,17 @@ class SearchHistorySqfliteLocalDataSource
 
   static Future<Database> _openDatabase() async {
     final databasesPath = await getDatabasesPath();
-    final databasePath = path.join(databasesPath, _databaseName);
+    final databasePath = path.join(
+      databasesPath,
+      AppConstants.searchHistoryDatabaseName,
+    );
 
     return openDatabase(
       databasePath,
       version: _databaseVersion,
-      onCreate: (database, version) {
-        return _createSearchHistoryTable(database);
+      onCreate: (database, version) async {
+        await _createSearchHistoryTable(database);
+        await _createSearchHistoryIndexes(database);
       },
       onUpgrade: (database, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -131,6 +135,10 @@ class SearchHistorySqfliteLocalDataSource
             'ALTER TABLE $_tableName ADD COLUMN $_synonymsColumn TEXT',
           );
         }
+        await _createSearchHistoryIndexes(database);
+      },
+      onOpen: (database) async {
+        await _createSearchHistoryIndexes(database);
       },
     );
   }
@@ -147,5 +155,12 @@ class SearchHistorySqfliteLocalDataSource
             $_searchedAtColumn INTEGER NOT NULL
           )
         ''');
+  }
+
+  static Future<void> _createSearchHistoryIndexes(Database database) {
+    return database.execute(
+      'CREATE INDEX IF NOT EXISTS $_searchedAtIndex '
+      'ON $_tableName ($_searchedAtColumn DESC)',
+    );
   }
 }

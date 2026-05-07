@@ -29,9 +29,17 @@ class DictionarySearchField extends StatelessWidget {
         decoration: InputDecoration(
           hintText: 'Search meanings, synonyms, definitions...',
           prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
-          suffixIcon: controller.text.isNotEmpty
-              ? IconButton(icon: const Icon(Icons.clear), onPressed: onClear)
-              : null,
+          suffixIcon: ValueListenableBuilder<TextEditingValue>(
+            valueListenable: controller,
+            builder: (context, value, _) {
+              return value.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: onClear,
+                    )
+                  : const SizedBox.shrink();
+            },
+          ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             vertical: 18,

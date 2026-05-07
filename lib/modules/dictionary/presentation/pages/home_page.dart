@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:machine_test_dictionary/app/router/app_router.dart';
 import 'package:machine_test_dictionary/app/router/navigation_helper.dart';
 import 'package:machine_test_dictionary/modules/dictionary/presentation/providers/dictionary_providers.dart';
@@ -62,45 +61,23 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   void _clearSearch() {
     _searchController.clear();
-    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final searchHistory = ref.watch(searchHistoryProvider);
-    final wordOfTheDay = _DailyWord.today();
-    final wordsListState = ref.watch(wordsListProvider);
-
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: IndexedStack(
         index: _currentIndex,
         children: [
-          HomeTemplate(
+          _HomeTab(
             searchController: _searchController,
-            wordOfTheDay: wordOfTheDay.word,
-            wordPreview: wordOfTheDay.preview,
             onSearchSubmitted: _handleSearchSubmitted,
-            onSearchChanged: (_) => setState(() {}),
             onSearchClear: _clearSearch,
-            onWordOfDayTap: () {
-              ref.read(searchHistoryProvider.notifier).add(wordOfTheDay.word);
-              _showWordDetails(wordOfTheDay.word);
-            },
-            searchHistory: searchHistory,
             onHistoryWordTap: _handleHistoryWordTap,
-            onViewAll: () => context.pushTo(AppRoute.history),
+            showWordDetails: _showWordDetails,
           ),
-          WordsTemplate(
-            words: wordsListState.words,
-            isLoading: wordsListState.isLoading,
-            hasMore: wordsListState.hasMore,
-            onLoadMore: () => ref.read(wordsListProvider.notifier).loadMore(),
-            onWordTap: (word) {
-              ref.read(searchHistoryProvider.notifier).add(word);
-              _showWordDetails(word);
-            },
-          ),
+          _WordsTab(showWordDetails: _showWordDetails),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -121,6 +98,66 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _HomeTab extends ConsumerWidget {
+  const _HomeTab({
+    required this.searchController,
+    required this.onSearchSubmitted,
+    required this.onSearchClear,
+    required this.onHistoryWordTap,
+    required this.showWordDetails,
+  });
+
+  final TextEditingController searchController;
+  final ValueChanged<String> onSearchSubmitted;
+  final VoidCallback onSearchClear;
+  final ValueChanged<String> onHistoryWordTap;
+  final ValueChanged<String> showWordDetails;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final searchHistory = ref.watch(searchHistoryProvider);
+    final wordOfTheDay = _DailyWord.today();
+
+    return HomeTemplate(
+      searchController: searchController,
+      wordOfTheDay: wordOfTheDay.word,
+      wordPreview: wordOfTheDay.preview,
+      onSearchSubmitted: onSearchSubmitted,
+      onSearchChanged: (_) {},
+      onSearchClear: onSearchClear,
+      onWordOfDayTap: () {
+        ref.read(searchHistoryProvider.notifier).add(wordOfTheDay.word);
+        showWordDetails(wordOfTheDay.word);
+      },
+      searchHistory: searchHistory,
+      onHistoryWordTap: onHistoryWordTap,
+      onViewAll: () => context.pushTo(AppRoute.history),
+    );
+  }
+}
+
+class _WordsTab extends ConsumerWidget {
+  const _WordsTab({required this.showWordDetails});
+
+  final ValueChanged<String> showWordDetails;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final wordsListState = ref.watch(wordsListProvider);
+
+    return WordsTemplate(
+      words: wordsListState.words,
+      isLoading: wordsListState.isLoading,
+      hasMore: wordsListState.hasMore,
+      onLoadMore: () => ref.read(wordsListProvider.notifier).loadMore(),
+      onWordTap: (word) {
+        ref.read(searchHistoryProvider.notifier).add(word);
+        showWordDetails(word);
+      },
     );
   }
 }

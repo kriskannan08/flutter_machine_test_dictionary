@@ -62,10 +62,8 @@ class _WordListState extends State<WordList> {
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(vertical: 16),
       itemCount: widget.words.length + (widget.hasMore ? 1 : 0),
-      separatorBuilder: (context, index) => Divider(
-        color: Colors.grey.withOpacity(0.1),
-        height: 1,
-      ),
+      separatorBuilder: (context, index) =>
+          Divider(color: Colors.grey.withValues(alpha: 0.1), height: 1),
       itemBuilder: (context, index) {
         if (index == widget.words.length) {
           return const Padding(

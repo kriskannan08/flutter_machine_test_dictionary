@@ -29,7 +29,7 @@ class SearchHistoryList extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            SectionTitle(title: 'History'),
+            const SectionTitle(title: 'History'),
             if (words.isNotEmpty)
               TextButton(
                 onPressed: onViewAll,
